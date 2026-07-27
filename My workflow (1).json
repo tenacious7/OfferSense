@@ -1,0 +1,658 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "maxResults": 5,
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -992,
+        -64
+      ],
+      "id": "8f3344e7-6918-4a26-81d3-10cdae7c9875",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Svy6cL1o0fttD6S6",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}",
+        "simple": false,
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -320,
+        -64
+      ],
+      "id": "131b0964-e27d-49ff-be90-e14398b1e99c",
+      "name": "Get a message",
+      "webhookId": "a818d5bd-2593-496c-9fe9-a1f94fcae90d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Svy6cL1o0fttD6S6",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over all incoming items\nfor (const item of $input.all()) {\n  const email = item.json;\n\n  // Grab the Subject and Sender, and convert to lowercase \n  // (We use || \"\" just in case the field is empty so it doesn't crash)\n  const subject = (email.Subject || \"\").toLowerCase();\n  const sender = (email.From || \"\").toLowerCase();\n\n  // Keywords indicating job-related emails\n  const jobKeywords = [\n      \"internship\", \"intern\", \"interview\", \"hiring\", \"career\",\n      \"job\", \"assessment\", \"offer\", \"recruitment\", \"application\",\n      \"candidate\", \"hr\", \"selection\", \"joining\", \"onboarding\", \"placement\"\n  ];\n\n  // Keywords to ignore\n  const ignoreKeywords = [\n      \"otp\", \"invoice\", \"receipt\", \"amazon\", \"flipkart\", \"netflix\",\n      \"youtube\", \"instagram\", \"facebook\", \"security alert\",\n      \"verification code\", \"password\", \"bank\", \"electricity\", \"transaction\"\n  ];\n\n  // Check if any job keyword is in the subject or sender\n  const isJobEmail = jobKeywords.some(keyword => \n      subject.includes(keyword) || sender.includes(keyword)\n  );\n\n  // Check if any ignore keyword is in the subject\n  const isIgnored = ignoreKeywords.some(keyword => \n      subject.includes(keyword)\n  );\n\n  // Determine whether to continue\n  const shouldContinue = isJobEmail && !isIgnored;\n\n  // Add the new field right into our email object\n  email.shouldContinue = shouldContinue;\n}\n\n// Return the updated items to the next node\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        -80
+      ],
+      "id": "44572b3b-a9c5-4967-b7cd-a60b185faf6d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c74710fd-79ad-4b84-a53c-705b9dd86c77",
+              "leftValue": "={{ $json.shouldContinue }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -496,
+        224
+      ],
+      "id": "39bdca2e-ff74-414e-b613-488b9a1cadbd",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0492f338-1f81-4b9b-8188-3b61ee2e585e",
+              "leftValue": "={{ !!$binary }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "looseTypeValidation": "={{ true }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -64,
+        -64
+      ],
+      "id": "6c485890-5d44-4ac9-9b66-d054d8452f6c",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "attachment_0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        160,
+        -240
+      ],
+      "id": "ad188a2d-5051-4a8d-a86e-bb3c5eadeba8",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "496042b1-4c61-462b-9918-cb2e3cc52c91",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        480,
+        -240
+      ],
+      "id": "f3f33aae-8e57-4bd7-9aff-a74016706e15",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the following job or internship communication for potential risk.\n\nSUBJECT:\n{{ $json.subject }}\n\nSENDER:\n{{ $json.from }}\n\nEMAIL BODY:\n{{ $json.body }}\n\nEXTRACTED ATTACHMENT TEXT:\n{{ $json.pdfText }}\n\nAnalyze only the supplied evidence.\n\nDetermine:\n- The company name, if identifiable\n- The job or internship role, if identifiable\n- Whether any payment is requested\n- The payment amount, if stated\n- The strongest observed risk signals\n- The overall risk score\n- The final classification\n- Whether external verification has been performed\n- A concise summary\n- A practical recommendation\n\nReturn the result strictly according to the connected Structured Output Parser schema.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are Job Guardian, an AI risk-analysis system specialized in evaluating job, internship, recruitment, interview, selection, onboarding, and offer-related emails.\n\nYour task is to analyze the supplied email content and any extracted attachment text, identify potential risk signals, and classify the opportunity into exactly one of three categories:\n\n- SUSPICIOUS\n- NEEDS_REVIEW\n- LIKELY_SAFE\n\nIMPORTANT:\nYou are currently performing content-based analysis only. You do not have access to the internet or external verification unless a connected tool explicitly provides verified information.\n\nEVIDENCE RULES\n\n1. Use only evidence provided in:\n   - The email subject\n   - Sender information\n   - Email body\n   - Extracted attachment text\n   - Results explicitly returned by connected verification tools\n\n2. Never invent or assume:\n   - Company search results\n   - Company legitimacy\n   - Website reputation\n   - Domain reputation\n   - URL destinations\n   - LinkedIn presence\n   - Business registration\n   - Sender authenticity\n   - Reviews or ratings\n   - Whether a company exists or does not exist\n\n3. Distinguish evidence as:\n   - OBSERVED: Directly present in the supplied email or attachment.\n   - VERIFIED: Confirmed by an external verification tool.\n   - UNKNOWN: Cannot be determined from available evidence.\n\n4. Do not declare an opportunity definitely fraudulent or definitely legitimate without sufficient verified evidence.\n\nCLASSIFICATION RULES\n\nSUSPICIOUS:\nUse when multiple strong risk signals or a highly significant risk signal is present.\n\nExamples:\n- Upfront payment required to secure or confirm a job/internship\n- Registration, enrollment, training, security, or onboarding fees\n- Requests for sensitive financial or identity information without a justified process\n- Strong contradictions between the email and attachment\n- Suspicious payment instructions\n- High-pressure or unusual recruitment behavior\n- Multiple significant risk indicators\n\nNEEDS_REVIEW:\nUse when:\n- Evidence is mixed\n- Important information cannot be verified\n- Some suspicious signals exist but are not strong enough for SUSPICIOUS\n- The opportunity requires independent verification before trusting it\n- There are inconsistencies or unusual practices that require human review\n\nLIKELY_SAFE:\nUse when:\n- No significant risk signals are observed\n- The recruitment process appears internally consistent\n- No suspicious payment or sensitive-information requests are present\n- The supplied content contains no major warning signs\n\nIMPORTANT:\nLIKELY_SAFE does not mean externally verified or guaranteed legitimate. It means no significant risk signals were identified in the available evidence.\n\nRISK SCORING\n\nAssign a risk_score from 0 to 100:\n\n- 0–39: LIKELY_SAFE\n- 40–69: NEEDS_REVIEW\n- 70–100: SUSPICIOUS\n\nThe classification MUST always match the risk_score range.\n\nANALYSIS RULES\n\n- Do not treat a personal email address alone as proof of fraud.\n- Do not treat poor grammar alone as proof of fraud.\n- Do not treat a tracking URL alone as malicious.\n- Do not claim a URL redirects somewhere unless a tool actually checked it.\n- Do not claim a company has no online presence unless a verification tool actually searched for it.\n- Do not infer the original attachment file type from extracted text unless file-type information is explicitly provided.\n- Do not invent missing information.\n- If no external verification tools were used, verification_status must be NOT_VERIFIED.\n- An upfront payment required to confirm a job or internship is a significant risk signal, but conclusions should still be evidence-based.\n- Keep red flags concise and directly supported by the supplied evidence.\n- Keep the final summary concise and factual.\n- Follow the connected Structured Output Parser schema exactly.\n- Do not output Markdown, tables, introductions, or additional commentary outside the required structured output.\n\nYour purpose is to identify risk, explain the evidence, communicate uncertainty, and help the user decide whether further verification is necessary."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        720,
+        192
+      ],
+      "id": "8aed13d5-b370-404f-9f23-e58c440e0eba",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "325711c8-bdd8-4f59-9883-17dc9b9469e6",
+              "name": "subject",
+              "value": "={{ $('Get a message').item.json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "ae975253-067a-4af2-bc9a-081fa7bb57f0",
+              "name": "from",
+              "value": "={{ $('Get a message').item.json.from.text }}",
+              "type": "string"
+            },
+            {
+              "id": "e76d261f-40b3-4f2f-9970-0046b1d05896",
+              "name": "body",
+              "value": "={{ $('Get a message').item.json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        192
+      ],
+      "id": "9d6d1ec4-4047-4735-be54-bb9eed0fa7aa",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "953ef83a-d973-4a06-b202-ab5b83aa7ea3",
+              "name": "subject",
+              "value": "={{ $('Get a message').item.json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "49c58e80-57c7-434e-8297-97398516aa67",
+              "name": "from",
+              "value": "={{ $('Get a message').item.json.from.text }}",
+              "type": "string"
+            },
+            {
+              "id": "d65e8b3b-806d-434b-96b9-465264a7f867",
+              "name": "body",
+              "value": "={{ $('Get a message').item.json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "8d9dda34-04a2-47ad-a1f5-f7b2046f553c",
+              "name": "pdfText",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        -256
+      ],
+      "id": "a7e5a528-f9ef-4a0f-8ccd-3bb16f430f3d",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {
+          "maxTokensToSample": 5000,
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        720,
+        496
+      ],
+      "id": "1e76ae8e-899f-4920-a612-8ce521fc4868",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "CmoR8lLvvhNErCnf",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"classification\": \"SUSPICIOUS\",\n  \"risk_score\": 85,\n  \"company\": \"Atlysbridge Solutions\",\n  \"role\": \"Data Analyst Intern\",\n  \"payment_requested\": true,\n  \"payment_amount\": \"₹1695\",\n  \"red_flags\": [\n    \"An upfront internship fee is required to confirm enrollment\",\n    \"Onboarding credentials are promised after payment\"\n  ],\n  \"verification_status\": \"NOT_VERIFIED\",\n  \"summary\": \"The opportunity contains significant risk signals, including an upfront payment requirement before onboarding.\",\n  \"recommendation\": \"Do not make any payment until the company and opportunity have been independently verified.\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        864,
+        464
+      ],
+      "id": "23cbc8aa-6b69-45a0-ac29-de5dadb8a7be",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.classification }}",
+                    "rightValue": "=SUSPICIOUS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "0a277477-85cb-4de3-97d8-d922be58fe81"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "17e000ba-1c71-4934-8e85-133a3277cc87",
+                    "leftValue": "={{ $json.output.classification }}",
+                    "rightValue": "NEEDS_REVIEW",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e163beb2-a7ae-4767-9b3e-67d4c96f290a",
+                    "leftValue": "={{ $json.output.classification }}",
+                    "rightValue": "LIKELY_SAFE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1136,
+        176
+      ],
+      "id": "f411a4c8-ab1f-45fd-bced-6c63cfcc6ad6",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Get a message').item.json.id }}",
+        "labelIds": [
+          "Label_219800846927073305"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1424,
+        -16
+      ],
+      "id": "5deb58a0-7287-4a21-973a-88e4d38a01ee",
+      "name": "Add label to message",
+      "webhookId": "15c9c3b4-a1f7-4b1c-b245-3c13abe8cc46",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Svy6cL1o0fttD6S6",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Get a message').item.json.id }}",
+        "labelIds": [
+          "Label_6323676715278012775"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        192
+      ],
+      "id": "4c750f4f-c75d-4d4c-8853-f4c76dbbd648",
+      "name": "Add label to message1",
+      "webhookId": "15c9c3b4-a1f7-4b1c-b245-3c13abe8cc46",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Svy6cL1o0fttD6S6",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Get a message').item.json.id }}",
+        "labelIds": [
+          "Label_1530665828400573145"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        432
+      ],
+      "id": "b4ed9766-d3a3-449d-9d0c-94e1b9c0d8d5",
+      "name": "Add label to message2",
+      "webhookId": "15c9c3b4-a1f7-4b1c-b245-3c13abe8cc46",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Svy6cL1o0fttD6S6",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a message": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Add label to message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add label to message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add label to message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "425d9603-66c8-47a4-a649-2e7e461a2618",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0031782b1d5d10fd9d33ced151795c199ced4934f35f5f0777f10e38131b60f6"
+  },
+  "nodeGroups": [],
+  "id": "AP4vdTqxC2ohz95V",
+  "tags": []
+}
