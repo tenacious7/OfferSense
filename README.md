@@ -57,15 +57,6 @@ As applications pile up, inboxes quickly fill with interview invitations, assess
 | ⚡ | Fully automated, hands-off n8n workflow |
 
 ---
-
-## 🎥 Demo
-
-<p align="center">
-  <img src="assets/demo.gif" width="900" alt="OfferSense demo">
-</p>
-
----
-
 ## 📸 Screenshots
 
 <table align="center">
