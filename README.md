@@ -82,7 +82,7 @@ As applications pile up, inboxes quickly fill with interview invitations, assess
 <td align="center"><strong>Gmail Labels</strong></td>
 </tr>
 <tr>
-<td><img src="assets/gmail-labels.png" width="900"></td>
+<td><img src="workflow/gmail-labels.png" width="900"></td>
 </tr>
 </table>
 
