@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="assets/banner.png" alt="OfferSense Banner" width="100%">
-</p>
-
 <h1 align="center">🛡️ OfferSense</h1>
 
 <p align="center">
@@ -77,7 +73,7 @@ As applications pile up, inboxes quickly fill with interview invitations, assess
 <td align="center"><strong>Workflow</strong></td>
 </tr>
 <tr>
-<td><img src="assets/workflow.png" width="900"></td>
+<td><img src="workflow/workflow.png" width="900"></td>
 </tr>
 </table>
 
